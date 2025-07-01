@@ -10,13 +10,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='notification',
-            name='notification_type',
-            field=models.CharField(
-                max_length=50,
-                choices=[('event_update', 'Event Update'), ('project_update', 'Project Update')],
-                default='event_update',
-            ),
-        ),
+        # This AddField operation was causing the duplicate column error.
+        # The column is already created in 0001_initial.py.
+        # If 0002 was meant to ALTER this field, it should have been an AlterField operation.
+        # Since 0003 is an AlterField, it seems 0002 was just wrongly generated.
     ]
