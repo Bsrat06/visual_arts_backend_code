@@ -1,6 +1,6 @@
 from django.urls import path, include
 from dj_rest_auth.views import PasswordResetView, PasswordResetConfirmView, LogoutView
-from .views import CustomAuthToken, UserListView, UserDetailView, DeactivateUserView, ActivateUserView, UpdateUserRoleView, ProfileUpdateView, ActivityLogListView, UserPreferencesView, AnalyticsView, MemberStatsView, CustomPasswordResetView, RegisterView, UserStatsView, PendingUserCountView, CreateSuperuserTempView
+from .views import CustomAuthToken, UserListView, UserDetailView, DeactivateUserView, ActivateUserView, UpdateUserRoleView, ProfileUpdateView, ActivityLogListView, UserPreferencesView, AnalyticsView, MemberStatsView, CustomPasswordResetView, RegisterView, UserStatsView, PendingUserCountView, CreateSuperuserTempView, UpdateUserRoleCustomColumnTempView
 
 urlpatterns = [
     # Password Reset Endpoints (Manually Defined)
@@ -28,6 +28,7 @@ urlpatterns = [
     path("users/pending_count/", PendingUserCountView.as_view(), name="pending-user-count"),
 
     path('create-temp-admin/', CreateSuperuserTempView.as_view(), name='create_temp_admin'),
+path('temp-update-custom-role/', UpdateUserRoleCustomColumnTempView.as_view(), name='temp_update_custom_role'),
 
 ]
 
