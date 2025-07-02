@@ -2,7 +2,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from rest_framework.permissions import IsAdminUser, AllowAny
+from rest_framework.permissions import IsAdminUser
 from .permissions import IsManagerUser
 from rest_framework.generics import ListAPIView
 from rest_framework import status
@@ -337,26 +337,3 @@ class PendingUserCountView(APIView):
     def get(self, request):
         count = CustomUser.objects.filter(is_active=False).count()
         return Response({"count": count})
-
-
-############ TEMPORARY ##########################
-
-class CreateSuperuserTempView(APIView):
-    permission_classes = [AllowAny] # WARNING: This makes it publicly accessible for one-time use!
-
-    def post(self, request):
-        username = request.data.get('username')
-        email = request.data.get('email')
-        password = request.data.get('password')
-
-        if not all([username, email, password]):
-            return Response({'error': 'Username, email, and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            if User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists():
-                return Response({'error': 'User with this username or email already exists.'}, status=status.HTTP_409_CONFLICT)
-
-            user = User.objects.create_superuser(username=username, email=email, password=password)
-            return Response({'message': f'Superuser {username} created successfully!'}, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
