@@ -2,7 +2,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from rest_framework.permissions import IsAdminUser, AllowAny
+from rest_framework.permissions import IsAdminUser
 from .permissions import IsManagerUser
 from rest_framework.generics import ListAPIView
 from rest_framework import status
@@ -24,7 +24,7 @@ from datetime import datetime
 from dj_rest_auth.views import PasswordResetView
 from django.core.exceptions import ValidationError
 import logging
-from django.contrib.auth.models import Group
+
 
 
 User = get_user_model()
@@ -337,82 +337,3 @@ class PendingUserCountView(APIView):
     def get(self, request):
         count = CustomUser.objects.filter(is_active=False).count()
         return Response({"count": count})
-
-
-############ TEMPORARY ##########################
-
-class CreateSuperuserTempView(APIView):
-    permission_classes = [AllowAny] # WARNING: This makes it publicly accessible for one-time use!
-
-    def post(self, request):
-        username = request.data.get('username')
-        email = request.data.get('email')
-        password = request.data.get('password')
-
-        if not all([username, email, password]):
-            return Response({'error': 'Username, email, and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            if User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists():
-                return Response({'error': 'User with this username or email already exists.'}, status=status.HTTP_409_CONFLICT)
-
-            user = User.objects.create_superuser(username=username, email=email, password=password)
-            return Response({'message': f'Superuser {username} created successfully!'}, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        
-        
-
-class UpdateUserRoleCustomColumnTempView(APIView):
-    permission_classes = [AllowAny] # WARNING: Makes this publicly accessible!
-
-    def post(self, request):
-        # --- Required Fields ---
-        user_identifier = request.data.get('user_identifier') # Can be username or email
-        desired_role = request.data.get('desired_role') # e.g., 'admin', 'visitor', 'moderator'
-
-        # Optional: Add a temporary "secret_key" for a tiny bit more protection
-        # secret_key = request.data.get('secret_key')
-        # if secret_key != "YOUR_HARDCODED_SECRET_PHRASE": # Choose a strong, unique secret
-        #    return Response({'error': 'Invalid secret key'}, status=status.HTTP_403_FORBIDDEN)
-
-
-        if not all([user_identifier, desired_role]):
-            return Response({'error': 'User identifier and desired_role are required.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Validate desired_role against your choices (optional but recommended)
-        valid_roles = [choice[0] for choice in User.ROLE_CHOICES] # Assuming ROLE_CHOICES on User model
-        if desired_role not in valid_roles:
-            return Response({'error': f'Invalid desired_role. Must be one of: {", ".join(valid_roles)}'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            # Try to find the user by username or email
-            user = None
-            if '@' in user_identifier: # Simple check for email
-                user = User.objects.get(email=user_identifier)
-            else:
-                user = User.objects.get(username=user_identifier)
-        except User.DoesNotExist:
-            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({'error': f'An error occurred while finding the user: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-        # --- Update the custom 'role' field ---
-        user.role = desired_role
-
-        # IMPORTANT: If 'admin' role should also grant Django admin panel access,
-        # you might also want to set is_staff and is_superuser here:
-        if desired_role == 'admin':
-            user.is_staff = True
-            user.is_superuser = True
-        else:
-            # Optionally, revoke staff/superuser status for non-admin roles
-            user.is_staff = False
-            user.is_superuser = False
-
-
-        user.save() # Save the user object to persist changes to the database
-
-        return Response({'message': f'User {user.username} role updated to "{desired_role}" successfully!'}, status=status.HTTP_200_OK)
