@@ -24,9 +24,9 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
 ]
 
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:5173",  # React frontend
-#     ]
+CORS_ALLOWED_ORIGINS = [
+    "https://visual-arts-frontend-code.onrender.com",  # React frontend
+    ]
 
 STORAGES = {
     "default":{
